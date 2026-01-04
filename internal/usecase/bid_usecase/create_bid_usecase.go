@@ -2,6 +2,7 @@ package bid_usecase
 
 import (
 	"context"
+	"fmt"
 	"fullcycle-auction_go/configuration/logger"
 	"fullcycle-auction_go/internal/entity/bid_entity"
 	"fullcycle-auction_go/internal/internal_error"
@@ -55,7 +56,7 @@ var bidBatch []bid_entity.Bid
 type BidUseCaseInterface interface {
 	CreateBid(
 		ctx context.Context,
-		bidInputDTO BidInputDTO) *internal_error.InternalError
+		bidInputDTO BidInputDTO) (string, *internal_error.InternalError)
 
 	FindWinningBidByAuctionId(
 		ctx context.Context, auctionId string) (*BidOutputDTO, *internal_error.InternalError)
@@ -77,6 +78,7 @@ func (bu *BidUseCase) triggerCreateRoutine(ctx context.Context) {
 							logger.Error("error trying to process bid batch list", err)
 						}
 					}
+					fmt.Println("[channel closed] bid batch created successfully")
 					return
 				}
 
@@ -89,6 +91,7 @@ func (bu *BidUseCase) triggerCreateRoutine(ctx context.Context) {
 
 					bidBatch = nil
 					bu.timer.Reset(bu.batchInsertInterval)
+					fmt.Println("[max batch size] bid batch created successfully")
 				}
 			case <-bu.timer.C:
 				if err := bu.BidRepository.CreateBid(ctx, bidBatch); err != nil {
@@ -96,6 +99,7 @@ func (bu *BidUseCase) triggerCreateRoutine(ctx context.Context) {
 				}
 				bidBatch = nil
 				bu.timer.Reset(bu.batchInsertInterval)
+				fmt.Println("[timer] bid batch created successfully")
 			}
 		}
 	}()
@@ -103,16 +107,16 @@ func (bu *BidUseCase) triggerCreateRoutine(ctx context.Context) {
 
 func (bu *BidUseCase) CreateBid(
 	ctx context.Context,
-	bidInputDTO BidInputDTO) *internal_error.InternalError {
+	bidInputDTO BidInputDTO) (string, *internal_error.InternalError) {
 
 	bidEntity, err := bid_entity.CreateBid(bidInputDTO.UserId, bidInputDTO.AuctionId, bidInputDTO.Amount)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	bu.bidChannel <- *bidEntity
 
-	return nil
+	return bidEntity.Id, nil
 }
 
 func getMaxBatchSizeInterval() time.Duration {
