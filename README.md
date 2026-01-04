@@ -27,3 +27,39 @@ Entrega
 - O código-fonte completo da implementação.
 - Documentação explicando como rodar o projeto em ambiente dev.
 - Utilize docker/docker-compose para podermos realizar os testes de sua aplicação.
+
+# Executando a aplicação
+
+### Pré-requisitos
+
+- Ajuste as variáveis de ambiente no arquivo `cmd/auction/.env`
+
+### Iniciando os serviços
+
+Inicie os containers através do docker compose:
+
+```sh
+docker-compose up -d
+```
+
+A aplicação irá rodar na porta `:8080`.
+
+### Endpoints da API
+
+A aplicação expõe os seguintes endpoints:
+
+- `GET /auction` Lista todos os leilões
+- `GET /auction/:auctionId` Busca um leilão pelo ID
+- `POST /auction` Cria um novo leilão
+- `GET /auction/winner/:auctionId` Busca o lance vencedor de um leilão pelo ID
+- `POST /bid` Cria um novo lance
+- `GET /bid/:auctionId` Lista todos os lances de um leilão
+- `GET /user/:userId` Busca um usuário pelo ID
+
+Utilize a extensão REST Client, do vscode, e execute as requisições do arquivo `api/auction.http`.
+
+### Rodando os testes
+
+```sh
+go test -v internal/infra/database/auction/create_auction_test.go 
+```
