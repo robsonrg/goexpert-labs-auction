@@ -20,7 +20,7 @@ services:
       - cmd/auction/.env
     volumes:
       - mongo-data:/data/db
-      - ./configuration/database/mongodb/init-users.js:/docker-entrypoint-initdb.d/init-users.js:ro
+      #- ./configuration/database/mongodb/init-users.js:/docker-entrypoint-initdb.d/init-users.js:ro
     networks:
       - localNetwork
 

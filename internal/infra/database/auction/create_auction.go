@@ -2,15 +2,16 @@ package auction
 
 import (
 	"context"
-	"fmt"
-	"fullcycle-auction_go/configuration/logger"
-	"fullcycle-auction_go/internal/entity/auction_entity"
-	"fullcycle-auction_go/internal/internal_error"
 	"os"
 	"time"
 
+	"github.com/robsonrg/goexpert-labs-auction/configuration/logger"
+	"github.com/robsonrg/goexpert-labs-auction/internal/entity/auction_entity"
+	"github.com/robsonrg/goexpert-labs-auction/internal/internal_error"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.uber.org/zap"
 )
 
 type AuctionEntityMongo struct {
@@ -51,30 +52,47 @@ func (ar *AuctionRepository) CreateAuction(
 		return internal_error.NewInternalServerError("Error trying to insert auction")
 	}
 
-	go func() {
-		time.Sleep(getAuctionInterval())
-
-		update := bson.M{"$set": bson.M{"status": auction_entity.Completed}}
-		filter := bson.M{"_id": auctionEntity.Id}
-		_, err := ar.Collection.UpdateOne(ctx, filter, update)
-		if err != nil {
-			logger.Error("Error trying to update auction status", err)
-			return
-		}
-
-		fmt.Println("Auction status updated to completed for auction ID: ", auctionEntity.Id)
-	}()
+	ar.triggerCreateRoutineCheckExpire(context.Background(), auctionEntity)
 
 	return nil
 }
 
-func getAuctionInterval() time.Duration {
-	auctionInterval := os.Getenv("AUCTION_INTERVAL")
-	duration, err := time.ParseDuration(auctionInterval)
-	if err != nil {
-		logger.Error("Error parsing AUCTION_INTERVAL, using default value", err)
-		return time.Minute * 5
-	}
+func (ar *AuctionRepository) triggerCreateRoutineCheckExpire(ctx context.Context, auctionEntity *auction_entity.Auction) {
+	go func() {
 
-	return duration
+		auctionInterval := os.Getenv("AUCTION_INTERVAL")
+		auctionTimeLoopInterval, err := time.ParseDuration(auctionInterval)
+		if err != nil {
+			logger.Error("Error trying to parse auction interval", err)
+			auctionTimeLoopInterval = time.Minute * 1
+		}
+
+		auctionExpire := os.Getenv("AUCTION_EXPIRE")
+		auctionLimitTimeToExpire, err := time.ParseDuration(auctionExpire)
+		if err != nil {
+			logger.Error("Error trying to parse auction expire", err)
+			auctionLimitTimeToExpire = time.Minute * 3
+		}
+
+		for {
+			logger.Info("Checking: %s", zap.String("Auction ID", auctionEntity.Id))
+
+			durationAuctionCreated := time.Since(auctionEntity.Timestamp)
+			if durationAuctionCreated > auctionLimitTimeToExpire {
+				logger.Info("Auction expired: %s", zap.String("Auction ID", auctionEntity.Id))
+
+				filter := bson.M{"_id": auctionEntity.Id, "status": auction_entity.Active}
+				update := bson.M{"$set": bson.M{"status": auction_entity.Completed}}
+
+				_, err := ar.Collection.UpdateOne(ctx, filter, update)
+				if err != nil {
+					logger.Error("Error trying to change status auction from Active to Complete", err)
+				}
+
+				break
+			}
+
+			time.Sleep(auctionTimeLoopInterval)
+		}
+	}()
 }
