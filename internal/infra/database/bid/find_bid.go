@@ -3,10 +3,11 @@ package bid
 import (
 	"context"
 	"fmt"
-	"fullcycle-auction_go/configuration/logger"
-	"fullcycle-auction_go/internal/entity/bid_entity"
-	"fullcycle-auction_go/internal/internal_error"
 	"time"
+
+	"github.com/robsonrg/goexpert-labs-auction/configuration/logger"
+	"github.com/robsonrg/goexpert-labs-auction/internal/entity/bid_entity"
+	"github.com/robsonrg/goexpert-labs-auction/internal/internal_error"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -14,7 +15,7 @@ import (
 
 func (bd *BidRepository) FindBidByAuctionId(
 	ctx context.Context, auctionId string) ([]bid_entity.Bid, *internal_error.InternalError) {
-	filter := bson.M{"auction_id": auctionId}
+	filter := bson.M{"auctionId": auctionId}
 
 	cursor, err := bd.Collection.Find(ctx, filter)
 	if err != nil {

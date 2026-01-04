@@ -2,9 +2,11 @@ package auction_entity
 
 import (
 	"context"
-	"fullcycle-auction_go/internal/internal_error"
-	"github.com/google/uuid"
 	"time"
+
+	"github.com/robsonrg/goexpert-labs-auction/internal/internal_error"
+
+	"github.com/google/uuid"
 )
 
 func CreateAuction(

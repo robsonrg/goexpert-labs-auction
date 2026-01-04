@@ -2,10 +2,11 @@ package bid_controller
 
 import (
 	"context"
-	"fullcycle-auction_go/configuration/rest_err"
-	"fullcycle-auction_go/internal/infra/api/web/validation"
-	"fullcycle-auction_go/internal/usecase/bid_usecase"
 	"net/http"
+
+	"github.com/robsonrg/goexpert-labs-auction/configuration/rest_err"
+	"github.com/robsonrg/goexpert-labs-auction/internal/infra/api/web/validation"
+	"github.com/robsonrg/goexpert-labs-auction/internal/usecase/bid_usecase"
 
 	"github.com/gin-gonic/gin"
 )
