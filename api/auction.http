@@ -1,0 +1,53 @@
+#find user
+GET http://localhost:8080/user/fd33527b-e74c-4235-8663-d34931a2936a
+//{ _id: "fd33527b-e74c-4235-8663-d34931a2936a", name: "David" }
+//{ _id: "1c3c9c61-002d-4566-a2a2-ae6d4f728c22", name: "Eve" }
+
+###
+
+#create auction
+POST http://localhost:8080/auction
+
+{
+    "product_name": "notebook",
+    "category": "eletronics",
+    "description": "product description",
+    "condition": 0
+}
+
+###
+
+#list auctions
+GET http://localhost:8080/auction?status=0
+
+### 
+
+#create bid
+POST http://localhost:8080/bid
+
+{
+    "auction_id": "bb9ac93d-8cdf-412f-bc99-81b5a8a4723f",
+    "user_id": "fd33527b-e74c-4235-8663-d34931a2936a",
+    "amount": 100
+}
+
+### 
+
+#create bid - second user
+POST http://localhost:8080/bid
+
+{
+    "auction_id": "bb9ac93d-8cdf-412f-bc99-81b5a8a4723f",
+    "user_id": "1c3c9c61-002d-4566-a2a2-ae6d4f728c22",
+    "amount": 130
+}
+
+###
+
+#get bid
+GET http://localhost:8080/bid/bb9ac93d-8cdf-412f-bc99-81b5a8a4723f
+
+###
+
+#get auction winner
+GET http://localhost:8080/auction/winner/bb9ac93d-8cdf-412f-bc99-81b5a8a4723f
